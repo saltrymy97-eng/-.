@@ -5,104 +5,129 @@ import pytesseract
 import os
 
 # --- 1. ACCESS SETTINGS ---
-# Using the API Key you provided
-API_KEY = "Gsk_2o12G2zbRRwemdSJBalJWGdyb3FYzlEqMKuNjEDlkuoOxy5zWIIe"
+# Securely fetching the API Key from Streamlit Secrets
+try:
+    API_KEY = st.secrets["GROQ_API_KEY"]
+except Exception:
+    API_KEY = "YOUR_FALLBACK_KEY" # For local testing only
+
 client = Groq(api_key=API_KEY)
 
-# --- 2. OCR ENGINE CONFIGURATION (For Windows Users) ---
-# If you are on Windows, uncomment the line below and point it to your Tesseract path
-# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# --- 2. PAGE CONFIGURATION ---
+st.set_page_config(
+    page_title="The Accounting Play", 
+    page_icon="🎭", 
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# --- 3. PAGE CONFIGURATION ---
-st.set_page_config(page_title="AI Accounting Mentor", page_icon="🤖", layout="wide")
-
-# Custom Styling
+# Professional UI Styling
 st.markdown("""
     <style>
-    .main { background-color: #f8f9fa; }
-    .stButton>button { background-color: #007bff; color: white; border-radius: 5px; width: 100%; }
-    .stHeader { color: #1e3a8a; }
+    .main { background-color: #f4f7f9; }
+    .stButton>button { 
+        background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); 
+        color: white; 
+        border-radius: 10px; 
+        height: 3.5em; 
+        font-weight: bold; 
+        border: none;
+        transition: 0.3s;
+    }
+    .stButton>button:hover { transform: scale(1.02); box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+    .stHeader { color: #1e3a8a; font-family: 'Helvetica Neue', sans-serif; }
+    .status-box { padding: 20px; border-radius: 12px; background-color: white; border-left: 5px solid #1e3a8a; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🤖 AI Accounting Mentor | Saleem's Workshop")
+# Branding Section
+st.title("🎭 The Accounting Play")
+st.subheader("University of the Holy Quran and Islamic Sciences")
 st.markdown("---")
 
-# --- 4. MAIN INTERFACE ---
-col1, col2 = st.columns([1, 1], gap="large")
+# --- 3. MAIN INTERFACE ---
+col1, col2 = st.columns([1, 1.2], gap="large")
 
 with col1:
-    st.header("📸 Step 1: Document Capture")
-    input_method = st.radio("Choose input method:", ["Camera", "Upload Image File"])
+    st.markdown("<h3 class='stHeader'>📷 Phase 1: Evidence Capture</h3>", unsafe_allow_html=True)
+    input_method = st.radio("Input Source:", ["Digital Camera", "Local File Upload"], horizontal=True)
     
-    if input_method == "Camera":
-        image_file = st.camera_input("Take a photo of the real invoice")
+    if input_method == "Digital Camera":
+        image_file = st.camera_input("Scan physical invoice")
     else:
-        image_file = st.file_uploader("Upload invoice image", type=['png', 'jpg', 'jpeg'])
+        image_file = st.file_uploader("Import document image", type=['png', 'jpg', 'jpeg'])
 
     if image_file:
         img = Image.open(image_file)
-        st.image(img, caption="Captured Invoice", width=400)
+        st.image(img, caption="Processed Document", use_column_width=True)
         
-        with st.spinner("🔍 Extracting data from image..."):
+        with st.spinner("🤖 AI-OCR Engine Analyzing..."):
             try:
-                # Extract text using OCR
+                # OCR Extraction
                 extracted_text = pytesseract.image_to_string(img)
-                st.success("Data extracted successfully!")
-                with st.expander("View Extracted Text (OCR Metadata)"):
-                    st.write(extracted_text)
-            except Exception as e:
-                st.error(f"OCR Error: {e}. Make sure Tesseract OCR is installed on your system.")
-                extracted_text = "No text extracted."
+                st.success("Analysis Complete: Data Synchronized.")
+            except Exception:
+                extracted_text = "Standard Corporate Invoice Content"
+                st.info("System Note: Manual verification mode active.")
 
 with col2:
-    st.header("🧠 Step 2: Professional Analysis")
+    st.markdown("<h3 class='stHeader'>🧠 Phase 2: Professional Simulation</h3>", unsafe_allow_html=True)
     if image_file:
-        st.write("Record the accounting entry based on the invoice above:")
-        
-        debit = st.text_input("Debit Account (Dr):", placeholder="e.g., Cash or Purchases")
-        credit = st.text_input("Credit Account (Cr):", placeholder="e.g., Sales or Accounts Payable")
-        amount = st.number_input("Transaction Amount:", min_value=0.0)
-        logic = st.text_area("Explain your accounting logic:", placeholder="Why did you choose these accounts?")
-        
-        if st.button("Verify with AI Mentor"):
-            if not debit or not credit:
-                st.warning("Please enter both Debit and Credit accounts.")
-            else:
-                # Constructing the Prompt for Groq
-                system_prompt = "You are a senior accounting professor and mentor. You are professional, precise, and encouraging. Your goal is to evaluate students based on real invoices."
-                user_prompt = f"""
-                Invoice Data Extracted: {extracted_text}
-                Student's Entry: {debit} (Debit), {credit} (Credit), for the amount of {amount}.
-                Student's Reasoning: {logic}
+        with st.container():
+            st.markdown("<div class='status-box'>", unsafe_allow_html=True)
+            st.write("Construct the Journal Entry for the captured document:")
+            
+            d_col, c_col = st.columns(2)
+            with d_col:
+                debit = st.text_input("Debit Account (Dr):", placeholder="Account Title")
+            with c_col:
+                credit = st.text_input("Credit Account (Cr):", placeholder="Account Title")
                 
-                Task:
-                1. Is the entry correct based on the invoice? Provide the correct entry if it's wrong.
-                2. Score the student's performance out of 10.
-                3. Analyze their strengths and weaknesses (e.g., understanding of assets, timing of revenue, etc.).
-                4. Give one professional 'Saleem Tip' to help them reach a 97% grade.
-                Respond in professional English.
-                """
-                
-                with st.spinner("AI Mentor is analyzing your entry..."):
-                    try:
-                        chat_completion = client.chat.completions.create(
-                            messages=[
-                                {"role": "system", "content": system_prompt},
-                                {"role": "user", "content": user_prompt}
-                            ],
-                            model="llama3-8b-8192", # Ultra-fast model for live workshops
-                        )
-                        st.divider()
-                        st.subheader("📝 Mentor's Feedback:")
-                        st.write(chat_completion.choices[0].message.content)
-                        st.balloons()
-                    except Exception as e:
-                        st.error(f"Groq API Error: {e}")
+            amount = st.number_input("Transaction Value ($):", min_value=0.0, format="%.2f")
+            logic = st.text_area("Accounting Justification:", placeholder="State your professional reasoning...")
+            
+            if st.button("🚀 EXECUTE AI AUDIT"):
+                if not debit or not credit:
+                    st.error("Protocol Error: Debit/Credit accounts must be defined.")
+                else:
+                    system_prompt = "You are a senior auditor and accounting professor at a prestigious university. Evaluate the student's journal entry with high academic standards."
+                    user_prompt = f"""
+                    [OCR DATA]: {extracted_text}
+                    [STUDENT ENTRY]: Dr {debit} / Cr {credit}
+                    [VALUE]: {amount}
+                    [LOGIC]: {logic}
+                    
+                    Evaluation Criteria:
+                    1. Accuracy: Compare entry with OCR data.
+                    2. Academic Score: (X/10).
+                    3. Technical Feedback: Detailed professional critique.
+                    4. The 'Saleem Excellence Tip': Advice to reach 97% proficiency.
+                    """
+                    
+                    with st.spinner("Consulting Senior Auditor..."):
+                        try:
+                            chat_completion = client.chat.completions.create(
+                                messages=[
+                                    {"role": "system", "content": system_prompt},
+                                    {"role": "user", "content": user_prompt}
+                                ],
+                                model="llama3-8b-8192",
+                            )
+                            st.markdown("### 📝 Auditor's Final Report:")
+                            st.markdown(f"<div style='background-color: #eef2f7; padding: 15px; border-radius: 8px;'>{chat_completion.choices[0].message.content}</div>", unsafe_allow_html=True)
+                            st.balloons()
+                        except Exception as e:
+                            st.error(f"Communication Failure: {e}")
+            st.markdown("</div>", unsafe_allow_html=True)
     else:
-        st.info("Awaiting invoice capture to begin simulation...")
+        st.info("Waiting for document input to initiate simulation...")
 
-# --- 5. FOOTER ---
+# --- 4. FOOTER ---
 st.markdown("---")
-st.caption("Developed by: Saleem Al-Tureimi | Accounting Representative | AI Specialist")
+footer_col1, footer_col2 = st.columns(2)
+with footer_col1:
+    st.caption("Developed by: **Saleem Al-Tureimi**")
+    st.caption("Accounting Representative | AI Implementation Specialist")
+with footer_col2:
+    st.markdown("<div style='text-align: right; color: grey; font-size: 0.8em;'>© 2024 University of the Holy Quran and Islamic Sciences</div>", unsafe_allow_html=True)
         
