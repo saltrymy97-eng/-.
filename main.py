@@ -126,4 +126,4 @@ with col_form:
 
 # --- 4. FOOTER ---
 st.markdown("---")
-st.caption("Developed by: Saleem Al-Tureimi | AI Accounting Implementation")
+st.caption("Developed by: Salim Al-trymy | AI Accounting Implementation")
