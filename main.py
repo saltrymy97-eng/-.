@@ -8,6 +8,7 @@ import os
 # Securely fetching the API Key from Streamlit Secrets
 try:
     # Ensure your Secret key in Streamlit is named exactly: GROQ_API_KEY
+    # It must be a single line without spaces or enters.
     API_KEY = st.secrets["GROQ_API_KEY"]
 except Exception:
     API_KEY = "YOUR_LOCAL_KEY_HERE" 
@@ -65,11 +66,11 @@ with col1:
         
         with st.spinner("🤖 AI-OCR Engine Analyzing..."):
             try:
-                # OCR Extraction (Requires Tesseract installed on server)
+                # OCR Extraction
                 extracted_text = pytesseract.image_to_string(img)
                 st.success("Analysis Complete: Data Synchronized.")
             except Exception:
-                extracted_text = "Standard Corporate Invoice Content"
+                extracted_text = "General Business Transaction"
                 st.info("System Note: Manual verification mode active.")
 
 with col2:
@@ -81,46 +82,46 @@ with col2:
             
             d_col, c_col = st.columns(2)
             with d_col:
-                debit = st.text_input("Debit Account (Dr):", placeholder="e.g., Office Equipment")
+                debit = st.text_input("Debit Account (Dr):", placeholder="e.g., Office Assets")
             with c_col:
                 credit = st.text_input("Credit Account (Cr):", placeholder="e.g., Cash / Bank")
                 
-            amount = st.number_input("Transaction Value:", min_value=0.0, format="%.2f")
-            logic = st.text_area("Accounting Justification:", placeholder="State the accounting principles used...")
+            amount = st.number_input("Transaction Value ($):", min_value=0.0, format="%.2f")
+            logic = st.text_area("Accounting Justification:", placeholder="Explain the principle used (e.g., Cost Principle)...")
             
             if st.button("🚀 EXECUTE AI AUDIT"):
                 if not debit or not credit:
                     st.error("Protocol Error: Both Debit and Credit accounts must be defined.")
                 else:
-                    system_prompt = "You are a senior auditor and accounting professor. Evaluate the student's journal entry with high academic standards. Focus on IAS/IFRS standards."
+                    system_prompt = "You are a senior auditor and accounting professor. Evaluate the student's journal entry with high academic standards. Focus on IFRS/GAAP."
                     user_prompt = f"""
                     [OCR DATA]: {extracted_text}
                     [STUDENT ENTRY]: Dr {debit} / Cr {credit}
                     [VALUE]: {amount}
                     [LOGIC]: {logic}
                     
-                    Evaluation Criteria:
-                    1. Accuracy: Is the entry correct based on the invoice?
-                    2. Academic Score: Give a score out of 10.
-                    3. Technical Feedback: Detailed professional critique.
-                    4. 'Saleem Excellence Tip': One expert tip to achieve 97% proficiency.
+                    Evaluation Plan:
+                    1. Accuracy: Cross-reference entry with invoice data.
+                    2. Academic Score: Score out of 10.
+                    3. Technical Feedback: Highlight strengths and errors.
+                    4. The 'Saleem Excellence Tip': A professional advice for high performance.
                     """
                     
                     with st.spinner("Consulting Senior Auditor..."):
                         try:
-                            # Updated to the latest supported model
+                            # Using the stable Versatile model to avoid 400 errors
                             chat_completion = client.chat.completions.create(
                                 messages=[
                                     {"role": "system", "content": system_prompt},
                                     {"role": "user", "content": user_prompt}
                                 ],
-                                model="llama-3.3-70b-specdec", 
+                                model="llama-3.1-70b-versatile", 
                             )
                             st.markdown("### 📝 Auditor's Final Report:")
                             st.markdown(f"<div class='feedback-container'>{chat_completion.choices[0].message.content}</div>", unsafe_allow_html=True)
                             st.balloons()
                         except Exception as e:
-                            st.error(f"Communication Failure: {str(e)}")
+                            st.error(f"Audit Connection Error: {str(e)}")
             st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("Waiting for document input to initiate simulation...")
@@ -133,4 +134,4 @@ with footer_col1:
     st.caption("Accounting Representative | AI Implementation Specialist")
 with footer_col2:
     st.markdown("<div style='text-align: right; color: grey; font-size: 0.8em;'>© 2026 University of the Holy Quran and Islamic Sciences</div>", unsafe_allow_html=True)
-        
+                
