@@ -1,5 +1,4 @@
-requests
+streamlit
+groq
 pandas
-openpyxl
-pillow
-python-dotenv
+Pillow
